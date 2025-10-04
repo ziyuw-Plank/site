@@ -3,158 +3,95 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>随手示例页面</title>
+  <title>静态示例页面</title>
   <style>
-    :root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#6ee7b7}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;line-height:1.4;background:linear-gradient(180deg,#071025 0%, #0b1220 100%);color:#e6eef6;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px}
-    .wrap{width:100%;max-width:960px}
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-    h1{font-size:20px;margin:0}
-    .controls{display:flex;gap:8px;align-items:center}
-    button{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:10px;color:inherit;cursor:pointer}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
-    .card h3{margin:0 0 8px 0;font-size:16px}
-    .muted{color:var(--muted);font-size:13px}
-    .big-number{font-size:28px;font-weight:700;margin-top:8px}
-    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
-    .search{display:flex;gap:8px}
-    input.search-input{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;color:inherit;outline:none;min-width:160px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:13px}
-    /* small responsive tweak */
-    @media (max-width:480px){header{flex-direction:column;align-items:flex-start;gap:10px}}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;line-height:1.4;background:#101826;color:#eee;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .wrap{width:100%;max-width:800px}
+    h1{font-size:22px;margin-bottom:10px}
+    .card{background:#182233;padding:16px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.5);margin-bottom:16px}
+    .muted{color:#aaa;font-size:13px}
+    button{background:#293955;border:none;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;margin-right:6px}
+    button:hover{background:#3a4a6e}
+    textarea{width:100%;padding:8px;border-radius:6px;background:#0d1322;color:#fff;border:1px solid #444;resize:vertical}
+    input{padding:6px;border-radius:6px;border:1px solid #444;background:#0d1322;color:#fff}
+    footer{text-align:center;font-size:12px;color:#666;margin-top:20px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <div>
-        <h1>随手示例页面 <span class="muted">— 轻量演示</span></h1>
-        <div class="muted" style="margin-top:6px">纯静态 HTML/CSS/JS，带一点交互</div>
-      </div>
-      <div class="controls">
-        <div class="search">
-          <input class="search-input" placeholder="搜索……" id="q" />
-          <button id="searchBtn">Go</button>
-        </div>
-        <button id="themeToggle">切换样式</button>
-      </div>
-    </header>
+    <h1>静态示例页面</h1>
+    <div class="card">
+      <div class="muted">搜索演示</div>
+      <input id="q" placeholder="输入关键字" />
+      <button onclick="doSearch()">搜索</button>
+    </div>
 
-    <main>
-      <section class="grid">
-        <div class="card">
-          <h3>今日摘要</h3>
-          <div class="muted">快速概览</div>
-          <div class="big-number" id="todayCount">42</div>
-          <div style="margin-top:10px"><span class="pill">状态：正常</span></div>
-        </div>
+    <div class="card">
+      <div class="muted">随机数生成</div>
+      <div id="num" style="font-size:20px;margin:8px 0;">0</div>
+      <button onclick="randomize()">生成随机数</button>
+    </div>
 
-        <div class="card">
-          <h3>备注</h3>
-          <div class="muted">可编辑区域</div>
-          <textarea id="note" style="width:100%;margin-top:10px;height:88px;border-radius:8px;padding:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" placeholder="写点什么……"></textarea>
-          <div style="margin-top:8px;text-align:right"><button id="saveNote">保存</button></div>
-        </div>
+    <div class="card">
+      <div class="muted">备注区</div>
+      <textarea id="note" placeholder="写点什么……"></textarea>
+      <button onclick="saveNote()">保存</button>
+      <button onclick="downloadNote()">导出</button>
+    </div>
 
-        <div class="card">
-          <h3>快捷操作</h3>
-          <div class="muted">点一下做点事</div>
-          <div style="display:flex;gap:8px;margin-top:12px">
-            <button onclick="randomize()">随机数</button>
-            <button onclick="toast('已执行')">提示</button>
-            <button id="downloadBtn">导出备注</button>
-          </div>
-        </div>
+    <div class="card">
+      <div class="muted">操作日志</div>
+      <ul id="log" style="padding-left:20px"></ul>
+    </div>
 
-        <div class="card" id="logCard">
-          <h3>操作日志</h3>
-          <div class="muted">最新事件</div>
-          <ul id="logList" style="margin-top:10px;padding-left:18px"></ul>
-        </div>
-      </section>
-
-      <footer>
-        这是一个随手写的示例页面 • 纯静态 • 仅作演示用途
-      </footer>
-    </main>
+    <footer>
+      纯静态 HTML 页面，无外部文件依赖
+    </footer>
   </div>
 
   <script>
-    const log = (t)=>{
-      const ul=document.getElementById('logList');
+    function log(msg){
+      const ul=document.getElementById('log');
       const li=document.createElement('li');
-      const ts=new Date().toLocaleTimeString();
-      li.textContent=`[${ts}] ${t}`;
+      li.textContent=new Date().toLocaleTimeString()+" — "+msg;
       ul.prepend(li);
     }
 
-    document.getElementById('searchBtn').addEventListener('click',()=>{
-      const q=document.getElementById('q').value.trim();
-      if(!q) return toast('请输入搜索内容');
-      toast('搜索：'+q);
-      log('搜索 — '+q);
-    });
-
-    document.getElementById('themeToggle').addEventListener('click',()=>{
-      document.body.classList.toggle('alt');
-      if(document.body.classList.contains('alt')){
-        document.documentElement.style.setProperty('--bg','#f7f9fb');
-        document.documentElement.style.setProperty('--card','#ffffff');
-        document.documentElement.style.setProperty('--muted','#657286');
-        document.documentElement.style.setProperty('--accent','#0ea5a3');
-        document.body.style.background='linear-gradient(180deg,#f8fafc, #eef2f7)';
-        document.body.style.color='#07101a';
-        log('切换到浅色模式');
-      }else{
-        document.documentElement.style.removeProperty('--bg');
-        document.documentElement.style.removeProperty('--card');
-        document.documentElement.style.removeProperty('--muted');
-        document.documentElement.style.removeProperty('--accent');
-        document.body.style.background='linear-gradient(180deg,#071025 0%, #0b1220 100%)';
-        document.body.style.color='#e6eef6';
-        log('切换到深色模式');
-      }
-    });
-
-    function toast(msg){
-      // 简单的临时提示
-      const d=document.createElement('div');
-      d.textContent=msg; d.style.position='fixed'; d.style.left='50%'; d.style.transform='translateX(-50%)';
-      d.style.bottom='28px'; d.style.padding='8px 12px'; d.style.borderRadius='8px';
-      d.style.background='rgba(0,0,0,0.7)'; d.style.color='#fff'; d.style.zIndex=9999; d.style.fontSize='14px';
-      document.body.appendChild(d);
-      setTimeout(()=>d.remove(),1500);
+    function doSearch(){
+      const v=document.getElementById('q').value;
+      log("搜索: "+v);
+      alert("搜索: "+v);
     }
 
     function randomize(){
       const n=Math.floor(Math.random()*1000);
-      document.getElementById('todayCount').textContent=n;
-      log('随机数 -> '+n);
+      document.getElementById('num').textContent=n;
+      log("随机数: "+n);
     }
 
-    document.getElementById('saveNote').addEventListener('click',()=>{
-      const v=document.getElementById('note').value;
-      localStorage.setItem('sample_note',v);
-      toast('已保存');
-      log('保存备注');
-    });
+    function saveNote(){
+      const t=document.getElementById('note').value;
+      localStorage.setItem('note',t);
+      log("备注已保存");
+    }
 
-    document.getElementById('downloadBtn').addEventListener('click',()=>{
-      const text=document.getElementById('note').value||'';
-      const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+    function downloadNote(){
+      const t=document.getElementById('note').value;
+      const blob=new Blob([t],{type:'text/plain'});
       const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download='note.txt'; a.click(); URL.revokeObjectURL(url);
-      log('导出备注');
-    });
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='note.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      log("备注已导出");
+    }
 
-    // 页面初始化
     (function(){
-      const s=localStorage.getItem('sample_note'); if(s) document.getElementById('note').value=s;
-      log('页面加载');
+      const s=localStorage.getItem('note');
+      if(s) document.getElementById('note').value=s;
+      log("页面已加载");
     })();
   </script>
 </body>
 </html>
-
