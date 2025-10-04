@@ -1,97 +1,10 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>静态示例页面</title>
-  <style>
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;line-height:1.4;background:#101826;color:#eee;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-    .wrap{width:100%;max-width:800px}
-    h1{font-size:22px;margin-bottom:10px}
-    .card{background:#182233;padding:16px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.5);margin-bottom:16px}
-    .muted{color:#aaa;font-size:13px}
-    button{background:#293955;border:none;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;margin-right:6px}
-    button:hover{background:#3a4a6e}
-    textarea{width:100%;padding:8px;border-radius:6px;background:#0d1322;color:#fff;border:1px solid #444;resize:vertical}
-    input{padding:6px;border-radius:6px;border:1px solid #444;background:#0d1322;color:#fff}
-    footer{text-align:center;font-size:12px;color:#666;margin-top:20px}
-  </style>
+  <meta charset="utf-8">
+  <title>Hello World</title>
 </head>
 <body>
-  <div class="wrap">
-    <h1>静态示例页面</h1>
-    <div class="card">
-      <div class="muted">搜索演示</div>
-      <input id="q" placeholder="输入关键字" />
-      <button onclick="doSearch()">搜索</button>
-    </div>
-
-    <div class="card">
-      <div class="muted">随机数生成</div>
-      <div id="num" style="font-size:20px;margin:8px 0;">0</div>
-      <button onclick="randomize()">生成随机数</button>
-    </div>
-
-    <div class="card">
-      <div class="muted">备注区</div>
-      <textarea id="note" placeholder="写点什么……"></textarea>
-      <button onclick="saveNote()">保存</button>
-      <button onclick="downloadNote()">导出</button>
-    </div>
-
-    <div class="card">
-      <div class="muted">操作日志</div>
-      <ul id="log" style="padding-left:20px"></ul>
-    </div>
-
-    <footer>
-      纯静态 HTML 页面，无外部文件依赖
-    </footer>
-  </div>
-
-  <script>
-    function log(msg){
-      const ul=document.getElementById('log');
-      const li=document.createElement('li');
-      li.textContent=new Date().toLocaleTimeString()+" — "+msg;
-      ul.prepend(li);
-    }
-
-    function doSearch(){
-      const v=document.getElementById('q').value;
-      log("搜索: "+v);
-      alert("搜索: "+v);
-    }
-
-    function randomize(){
-      const n=Math.floor(Math.random()*1000);
-      document.getElementById('num').textContent=n;
-      log("随机数: "+n);
-    }
-
-    function saveNote(){
-      const t=document.getElementById('note').value;
-      localStorage.setItem('note',t);
-      log("备注已保存");
-    }
-
-    function downloadNote(){
-      const t=document.getElementById('note').value;
-      const blob=new Blob([t],{type:'text/plain'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url;
-      a.download='note.txt';
-      a.click();
-      URL.revokeObjectURL(url);
-      log("备注已导出");
-    }
-
-    (function(){
-      const s=localStorage.getItem('note');
-      if(s) document.getElementById('note').value=s;
-      log("页面已加载");
-    })();
-  </script>
+  <h1>Hello, World!</h1>
 </body>
 </html>
