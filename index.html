@@ -1,10 +1,45 @@
-<!doctype html>
-<html lang="zh-CN">
+<!DOCTYPE html>
+<html lang="zh">
 <head>
-  <meta charset="utf-8">
-  <title>Hello World</title>
+<meta charset="UTF-8">
+<title>选择位置</title>
+<style>
+  body { font-family: sans-serif; text-align: center; padding: 40px; background: #f7f7f7; }
+  h1 { margin-bottom: 30px; }
+  button {
+    display: block;
+    width: 200px;
+    margin: 10px auto;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    background: #007bff;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #0056b3;
+  }
+</style>
 </head>
 <body>
-  <h1>Hello, World!</h1>
+<h1>选择查询地点</h1>
+
+<button onclick="go(32.100564, 118.911458)">格物楼东侧</button>
+<button onclick="go(32.101014, 118.911399)">行建楼东侧</button>
+<button onclick="go(32.102296, 118.911095)">学明楼</button>
+<button onclick="go(32.102681, 118.912134)">学正楼</button>
+<button onclick="go(32.102433, 118.914265)">学海楼东</button>
+<button onclick="go(32.102124, 118.913439)">学海楼西</button>
+<button onclick="go(32.101316, 118.913393)">厚生楼北</button>
+
+<script>
+function go(lat, lon) {
+  // 点击按钮后跳转到 run.html，并带上坐标参数
+  window.location.href = `run.html?lat=${lat}&lon=${lon}`;
+}
+</script>
+
 </body>
 </html>
