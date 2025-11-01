@@ -5,18 +5,12 @@
 <title>车辆列表</title>
 <style>
   body { font-family: sans-serif; background: #f7f7f7; padding: 20px; }
-  h1 { text-align: center; }
+  h1 { text-align: center; margin-bottom: 20px; }
   h2 { margin-top: 40px; color: #333; }
   table { border-collapse: collapse; width: 100%; margin-top: 10px; }
   th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
   th { background-color: #eee; }
-  .number {
-    color: #007bff;
-    font-weight: bold;
-    background: #fff3cd;
-    border-radius: 4px;
-    padding: 2px 6px;
-  }
+  .number { color: #007bff; font-weight: bold; background: #fff3cd; border-radius: 4px; padding: 2px 6px; }
 </style>
 </head>
 <body>
@@ -24,67 +18,66 @@
 <div id="container">加载中...</div>
 
 <script>
-async function loadCars() {
-  const container = document.getElementById("container");
-  try {
-    // 从 URL 中取参数 ?lat=...&lon=...
-    const params = new URLSearchParams(window.location.search);
-    const lat = params.get("lat") || "32.102078";
-    const lon = params.get("lon") || "118.91059";
+async function loadCars(lat, lon) {
+    const container = document.getElementById("container");
+    const target = `https://newmapi.7mate.cn/api/new/surrounding/car?latitude=${lat}&longitude=${lon}`;
+    const proxyUrl = `https://cors-prfunction-yoolvkcvju.cn-hangzhou.fcapp.run?url=${encodeURIComponent(target)}`;
 
-    // 请求 PHP 接口
-    const res = await fetch(`run.php?lat=${lat}&lon=${lon}`);
-    const data = await res.json();
-    const groups = data?.data || {};
+    try {
+        const res = await fetch(proxyUrl);
+        const data = await res.json();
+        const groups = data?.data || {};
 
-    if (!Object.keys(groups).length) {
-      container.innerHTML = "<p>没有车辆数据。</p>";
-      return;
+        if (!Object.keys(groups).length) {
+            container.innerHTML = "<p>没有车辆数据。</p>";
+            return;
+        }
+
+        container.innerHTML = "";
+        for (const [type, group] of Object.entries(groups)) {
+            const cars = group.cars || [];
+            const total = group.total || 0;
+
+            const tableHTML = cars.length
+                ? `<table>
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>编号</th>
+                        <th>经度</th>
+                        <th>纬度</th>
+                        <th>电池</th>
+                        <th>距离基准点(m)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${cars.map(car => `
+                        <tr>
+                          <td>${car.id}</td>
+                          <td class="number">${car.number}</td>
+                          <td>${car.longitude}</td>
+                          <td>${car.latitude}</td>
+                          <td>${car.battery_name || '-'}</td>
+                          <td>${car.distance}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                  </table>`
+                : "<p>暂无数据。</p>";
+
+            container.innerHTML += `<h2>${type}（共 ${total} 辆）</h2>${tableHTML}`;
+        }
+    } catch (err) {
+        container.innerHTML = `<p>请求失败：${err.message}</p>`;
     }
-
-    container.innerHTML = "";
-    for (const [type, group] of Object.entries(groups)) {
-      const cars = group.cars || [];
-      const total = group.total || 0;
-
-      const tableHTML = cars.length
-        ? `<table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>编号（高亮）</th>
-                <th>经度</th>
-                <th>纬度</th>
-                <th>电池</th>
-                <th>距离基准点(m)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${cars.map(car => `
-                <tr>
-                  <td>${car.id}</td>
-                  <td class="number">${car.number}</td>
-                  <td>${car.longitude}</td>
-                  <td>${car.latitude}</td>
-                  <td>${car.battery_name || '-'}</td>
-                  <td>${car.distance}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>`
-        : "<p>暂无数据。</p>";
-
-      container.innerHTML += `
-        <h2>${type}（共 ${total} 辆）</h2>
-        ${tableHTML}
-      `;
-    }
-  } catch (err) {
-    container.innerHTML = `<p>请求失败：${err.message}</p>`;
-  }
 }
 
-loadCars();
+// 获取 URL 参数 ?lat=...&lon=...
+const params = new URLSearchParams(window.location.search);
+const lat = params.get("lat") || "32.102954";
+const lon = params.get("lon") || "118.911875";
+
+// 自动加载车辆数据
+loadCars(lat, lon);
 </script>
 
 <br><br>
