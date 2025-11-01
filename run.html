@@ -2,238 +2,15 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>车辆列表</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<title>车辆位置地图</title>
 <style>
-  * { box-sizing: border-box; }
-
-  body {
-    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
-    padding: 40px 20px;
+  html, body {
     margin: 0;
-    color: #e2e8f0;
-    position: relative;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.12), transparent);
-    border-radius: 50%;
-    top: -250px;
-    right: -250px;
-    animation: pulse 8s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  body::after {
-    content: '';
-    position: fixed;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.1), transparent);
-    border-radius: 50%;
-    bottom: -200px;
-    left: -200px;
-    animation: pulse 6s ease-in-out infinite reverse;
-    pointer-events: none;
-  }
-
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 0.5; }
-    50% { transform: scale(1.15); opacity: 0.8; }
-  }
-
-  h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 2em;
-    color: #e2e8f0;
-    text-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
-    letter-spacing: 1px;
-    position: relative;
-    z-index: 1;
-  }
-
-  h2 {
-    margin-top: 40px;
-    color: #93c5fd;
-    font-size: 1.3em;
-    border-left: 6px solid #3b82f6;
-    padding-left: 10px;
-    text-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
-  }
-
-  #container {
-    background: rgba(30, 41, 59, 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    position: relative;
-    z-index: 1;
-  }
-
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 15px;
-    background: rgba(51, 65, 85, 0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  th, td {
-    padding: 12px 10px;
-    text-align: center;
-  }
-
-  th {
-    background: rgba(59, 130, 246, 0.3);
-    color: #e2e8f0;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid rgba(59, 130, 246, 0.4);
-  }
-
-  tr:nth-child(even) { 
-    background: rgba(51, 65, 85, 0.3); 
-  }
-
-  tr:hover {
-    background: rgba(59, 130, 246, 0.2);
-    transition: background 0.3s ease;
-  }
-
-  .number {
-    color: #fbbf24;
-    font-weight: bold;
-    background: rgba(251, 191, 36, 0.15);
-    border: 1px solid rgba(251, 191, 36, 0.3);
-    border-radius: 6px;
-    padding: 4px 8px;
-    display: inline-block;
-    text-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
-  }
-
-  .map-link {
-    color: #60a5fa;
-    text-decoration: none;
-    padding: 4px 12px;
-    background: rgba(59, 130, 246, 0.2);
-    border: 1px solid rgba(59, 130, 246, 0.3);
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    display: inline-block;
-    cursor: pointer;
-  }
-
-  .map-link:hover {
-    background: rgba(59, 130, 246, 0.4);
-    border-color: rgba(59, 130, 246, 0.5);
-    color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-  }
-
-  p {
-    text-align: center;
-    font-size: 1.1em;
-    color: #cbd5e1;
-    margin-top: 20px;
-  }
-
-  footer {
-    margin-top: 60px;
-    text-align: center;
-    font-size: 1.1em;
-    color: #e2e8f0;
-    background: rgba(30, 41, 59, 0.6);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-radius: 16px;
-    padding: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    position: relative;
-    z-index: 1;
-  }
-
-  /* 地图模态框 */
-  #map-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
     height: 100%;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-    padding: 20px;
-  }
-
-  #map-modal.show {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .map-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    background: rgba(30, 41, 59, 0.6);
-    padding: 15px 20px;
-    border-radius: 16px;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .map-title {
-    color: #e2e8f0;
-    font-size: 1.5em;
-    text-shadow: 0 2px 10px rgba(59, 130, 246, 0.5);
-  }
-
-  .close-btn {
-    background: rgba(239, 68, 68, 0.3);
-    border: 1px solid rgba(239, 68, 68, 0.5);
-    color: #fecaca;
-    padding: 8px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-  }
-
-  .close-btn:hover {
-    background: rgba(239, 68, 68, 0.5);
-    transform: scale(1.05);
-  }
-
-  #map-container {
-    flex: 1;
-    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   }
 
   #map {
@@ -241,185 +18,155 @@
     height: 100%;
   }
 
-  /* Leaflet 弹窗样式 */
-  .leaflet-popup-content-wrapper {
-    background: rgba(30, 41, 59, 0.95);
-    color: #e2e8f0;
-    border-radius: 12px;
+  .copy-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+    z-index: 2000;
+    animation: slideDown 0.3s ease;
     backdrop-filter: blur(10px);
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  /* 信息窗体样式 */
+  .info-window {
+    background: rgba(30, 41, 59, 0.95);
+    color: #fbbf24;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 15px;
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .leaflet-popup-tip {
-    background: rgba(30, 41, 59, 0.95);
-  }
-
-  .leaflet-popup-content h3 {
+  .info-window span {
     color: #fbbf24;
-    margin: 0 0 8px 0;
+    cursor: pointer;
+    font-weight: bold;
   }
 
-  .leaflet-popup-content p {
-    margin: 4px 0;
-    color: #cbd5e1;
-  }
-
-  @media (max-width: 700px) {
-    table, thead, tbody, th, td, tr { display: block; }
-    th { display: none; }
-    td {
-      padding: 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      text-align: left;
-    }
-    td::before {
-      content: attr(data-label);
-      font-weight: bold;
-      color: #93c5fd;
-      display: block;
-    }
-    #map-modal {
-      padding: 10px;
-    }
+  .info-window span:hover {
+    text-decoration: underline;
   }
 </style>
+
+<!-- 高德地图JS API（请在 key= 后填写你的 key） -->
+<script src="https://webapi.amap.com/maps?v=2.0&key=d124d3ae2818bf6f9f005f2ed106fbe5"></script>
 </head>
 <body>
-<h1>车辆信息</h1>
-<div id="container">加载中...</div>
-
-<!-- 地图模态框 -->
-<div id="map-modal">
-  <div class="map-header">
-    <div class="map-title" id="map-title">车辆位置</div>
-    <button class="close-btn" onclick="closeMap()">关闭地图</button>
-  </div>
-  <div id="map-container">
-    <div id="map"></div>
-  </div>
-</div>
+<div id="map"></div>
 
 <script>
 let map = null;
-let marker = null;
 
 async function loadCars(lat, lon) {
-    const container = document.getElementById("container");
-    const target = `https://newmapi.7mate.cn/api/new/surrounding/car?latitude=${lat}&longitude=${lon}`;
-    const proxyUrl = `https://cors-prfunction-yoolvkcvju.cn-hangzhou.fcapp.run?url=${encodeURIComponent(target)}`;
+  const target = `https://newmapi.7mate.cn/api/new/surrounding/car?latitude=${lat}&longitude=${lon}`;
+  const proxyUrl = `https://cors-prfunction-yoolvkcvju.cn-hangzhou.fcapp.run?url=${encodeURIComponent(target)}`;
 
-    try {
-        const res = await fetch(proxyUrl);
-        const data = await res.json();
-        const groups = data?.data || {};
+  try {
+    const res = await fetch(proxyUrl);
+    const data = await res.json();
+    const groups = data?.data || {};
+    const allCars = [];
 
-        if (!Object.keys(groups).length) {
-            container.innerHTML = "<p>没有车辆数据。</p>";
-            return;
-        }
-
-        container.innerHTML = "";
-        for (const [type, group] of Object.entries(groups)) {
-            const cars = group.cars || [];
-            const total = group.total || 0;
-
-            const cleanType = String(type || "").replace(/danche/gi, "").trim();
-
-            const tableHTML = `<table>
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>编号</th>
-                        <th>电池</th>
-                        <th>距离基准点(m)</th>
-                        <th>地图</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${cars.map(car => `
-                        <tr>
-                          <td data-label="ID">${car.id}</td>
-                          <td data-label="编号" class="number">${car.number}</td>
-                          <td data-label="电池">${car.battery_name || '-'}</td>
-                          <td data-label="距离">${car.distance}</td>
-                          <td data-label="地图"><a class="map-link" onclick="showMap(${car.latitude}, ${car.longitude}, '${car.number}')">查看位置</a></td>
-                        </tr>`).join('')}
-                    </tbody>
-                  </table>`;
-
-            container.innerHTML += `${cleanType ? `<h2>${cleanType}(共 ${total} 辆)</h2>` : ""}${tableHTML}`;
-        }
-    } catch (err) {
-        container.innerHTML = `<p>请求失败:${err.message}</p>`;
+    for (const group of Object.values(groups)) {
+      if (Array.isArray(group.cars)) {
+        allCars.push(...group.cars);
+      }
     }
+
+    if (!allCars.length) {
+      showToast("没有车辆数据");
+      return;
+    }
+
+    // 初始化地图
+    initMap(allCars, lat, lon);
+  } catch (err) {
+    showToast("请求失败：" + err.message);
+  }
 }
 
-function showMap(lat, lon, number) {
-    const modal = document.getElementById('map-modal');
-    const mapTitle = document.getElementById('map-title');
-    
-    mapTitle.innerHTML = `车辆 <span style="color: #fbbf24;">${number}</span> 的位置`;
-    modal.classList.add('show');
-    
-    // 如果地图已存在，移除旧的
-    if (map) {
-        map.remove();
-    }
-    
-    // 初始化新地图
-    setTimeout(() => {
-        map = L.map('map').setView([lat, lon], 17);
-        
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap &copy; CARTO',
-            maxZoom: 20
-        }).addTo(map);
-        
-        const customIcon = L.divIcon({
-            className: 'custom-marker',
-            html: `<div style="
-                background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-                width: 30px;
-                height: 30px;
-                border-radius: 50% 50% 50% 0;
-                transform: rotate(-45deg);
-                border: 3px solid white;
-                box-shadow: 0 4px 15px rgba(59, 130, 246, 0.6);
-            "></div>`,
-            iconSize: [30, 30],
-            iconAnchor: [15, 30]
-        });
-        
-        marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
-        
-        marker.bindPopup(`
-            <div>
-                <h3>车辆 ${number}</h3>
-                <p>经度: ${lon}</p>
-                <p>纬度: ${lat}</p>
-            </div>
-        `).openPopup();
-        
-        L.circle([lat, lon], {
-            color: '#3b82f6',
-            fillColor: '#3b82f6',
-            fillOpacity: 0.2,
-            radius: 50
-        }).addTo(map);
-        
-        // 强制刷新地图大小
-        map.invalidateSize();
-    }, 100);
+function initMap(cars, lat, lon) {
+  map = new AMap.Map("map", {
+    viewMode: "3D",
+    zoom: 15,
+    center: [lon, lat],
+    mapStyle: "amap://styles/dark", // 夜间风格（原 darkblue 改为官方支持的 dark）
+  });
+
+  cars.forEach(car => {
+    const position = [car.longitude, car.latitude];
+    const marker = new AMap.Marker({
+      position,
+      map,
+      title: car.number,
+      icon: new AMap.Icon({
+        image: "https://a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-default.png",
+        size: new AMap.Size(25, 34),
+        imageSize: new AMap.Size(25, 34)
+      })
+    });
+
+    const infoContent = `
+      <div class="info-window">
+        车辆编号：<span onclick="copyNumber('${car.number}')">${car.number}</span><br>
+        电池：${car.battery_name || '-'}<br>
+        距离基准点：${car.distance} m
+      </div>
+    `;
+    const infoWindow = new AMap.InfoWindow({
+      content: infoContent,
+      offset: new AMap.Pixel(0, -25)
+    });
+
+    marker.on("click", () => {
+      infoWindow.open(map, position);
+    });
+  });
 }
 
-function closeMap() {
-    const modal = document.getElementById('map-modal');
-    modal.classList.remove('show');
-    
-    if (map) {
-        map.remove();
-        map = null;
-    }
+function copyNumber(number) {
+  navigator.clipboard.writeText(number).then(() => {
+    showToast(`已复制: ${number}`);
+  }).catch(() => {
+    const textarea = document.createElement('textarea');
+    textarea.value = number;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showToast(`已复制: ${number}`);
+  });
+}
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'copy-toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => document.body.removeChild(toast), 300);
+  }, 2000);
 }
 
 const params = new URLSearchParams(window.location.search);
@@ -428,7 +175,5 @@ const lon = params.get("lon") || "118.911875";
 
 loadCars(lat, lon);
 </script>
-
-<footer>解锁成功后请在手机上点击"寻车"查看具体位置</footer>
 </body>
 </html>
