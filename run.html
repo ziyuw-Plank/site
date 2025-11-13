@@ -2,8 +2,13 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>车辆位置地图</title>
 <style>
+  * {
+    box-sizing: border-box;
+  }
+
   html, body {
     margin: 0;
     height: 100%;
@@ -18,12 +23,110 @@
     height: 100%;
   }
 
+  /* 加载状态 */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    backdrop-filter: blur(5px);
+  }
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(251, 191, 36, 0.2);
+    border-top-color: #fbbf24;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .loading-text {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #fbbf24;
+  }
+
+  /* 控制面板 */
+  .control-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(30, 41, 59, 0.95);
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    min-width: 220px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .control-panel h3 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: #fbbf24;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 8px;
+  }
+
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-size: 14px;
+  }
+
+  .stat-label {
+    color: #94a3b8;
+  }
+
+  .stat-value {
+    color: #fbbf24;
+    font-weight: bold;
+  }
+
+  .refresh-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #1e293b;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .refresh-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+  }
+
+  .refresh-btn:active {
+    transform: translateY(0);
+  }
+
+  /* Toast提示 */
   .copy-toast {
     position: fixed;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(34, 197, 94, 0.9);
+    background: rgba(34, 197, 94, 0.95);
     color: white;
     padding: 12px 24px;
     border-radius: 10px;
@@ -31,6 +134,11 @@
     z-index: 2000;
     animation: slideDown 0.3s ease;
     backdrop-filter: blur(10px);
+  }
+
+  .error-toast {
+    background: rgba(239, 68, 68, 0.95);
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
   }
 
   @keyframes slideDown {
@@ -46,33 +154,135 @@
 
   /* 信息窗体样式 */
   .info-window {
-    background: rgba(30, 41, 59, 0.95);
-    color: #fbbf24;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(30, 41, 59, 0.98);
+    color: #e2e8f0;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    min-width: 200px;
   }
 
-  .info-window span {
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0;
+    padding: 4px 0;
+  }
+
+  .info-row:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .info-label {
+    color: #94a3b8;
+    font-size: 13px;
+  }
+
+  .info-value {
     color: #fbbf24;
+    font-weight: 600;
+  }
+
+  .copy-btn {
     cursor: pointer;
-    font-weight: bold;
+    padding: 4px 12px;
+    background: rgba(251, 191, 36, 0.2);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
-  .info-window span:hover {
-    text-decoration: underline;
+  .copy-btn:hover {
+    background: rgba(251, 191, 36, 0.4);
+    transform: scale(1.05);
+  }
+
+  .copy-btn.pressing {
+    background: rgba(59, 130, 246, 0.4);
+    animation: pulse 0.6s ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  .nav-hint {
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(59, 130, 246, 0.95);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    animation: fadeInUp 0.3s ease forwards;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .control-panel {
+      top: 10px;
+      right: 10px;
+      left: 10px;
+      min-width: auto;
+    }
   }
 </style>
 
-<!-- 高德地图JS API（请在 key= 后填写你的 key） -->
 <script src="https://webapi.amap.com/maps?v=2.0&key=d124d3ae2818bf6f9f005f2ed106fbe5"></script>
 </head>
 <body>
+
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">加载车辆数据中...</div>
+</div>
+
 <div id="map"></div>
+
+<div class="control-panel">
+  <h3>📍 车辆统计</h3>
+  <div class="stat-item">
+    <span class="stat-label">总车辆数</span>
+    <span class="stat-value" id="totalCars">0</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">平均距离</span>
+    <span class="stat-value" id="avgDistance">0 m</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">最近车辆</span>
+    <span class="stat-value" id="nearestCar">-</span>
+  </div>
+  <button class="refresh-btn" onclick="refreshData()">🔄 刷新数据</button>
+</div>
 
 <script>
 let map = null;
+let markers = [];
+let currentLat = null;
+let currentLon = null;
 
 async function loadCars(lat, lon) {
   const target = `https://newmapi.7mate.cn/api/new/surrounding/car?latitude=${lat}&longitude=${lon}`;
@@ -80,6 +290,11 @@ async function loadCars(lat, lon) {
 
   try {
     const res = await fetch(proxyUrl);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
     const data = await res.json();
     const groups = data?.data || {};
     const allCars = [];
@@ -91,25 +306,57 @@ async function loadCars(lat, lon) {
     }
 
     if (!allCars.length) {
-      showToast("没有车辆数据");
+      showToast("当前位置周边暂无车辆", true);
+      hideLoading();
       return;
     }
 
-    // 初始化地图
     initMap(allCars, lat, lon);
+    updateStats(allCars);
+    hideLoading();
+    
   } catch (err) {
-    showToast("请求失败：" + err.message);
+    console.error('加载失败:', err);
+    showToast("加载失败: " + err.message, true);
+    hideLoading();
   }
 }
 
 function initMap(cars, lat, lon) {
-  map = new AMap.Map("map", {
-    viewMode: "3D",
-    zoom: 15,
-    center: [lon, lat],
-    mapStyle: "amap://styles/dark", // 夜间风格（原 darkblue 改为官方支持的 dark）
-  });
+  // 清除旧标记
+  if (markers.length > 0) {
+    markers.forEach(m => m.setMap(null));
+    markers = [];
+  }
 
+  // 初始化或更新地图
+  if (!map) {
+    map = new AMap.Map("map", {
+      viewMode: "3D",
+      zoom: 15,
+      center: [lon, lat],
+      mapStyle: "amap://styles/dark",
+      pitch: 45,
+      rotation: 0
+    });
+
+    // 添加基准点标记
+    new AMap.Marker({
+      position: [lon, lat],
+      map,
+      icon: new AMap.Icon({
+        image: "https://a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-red.png",
+        size: new AMap.Size(30, 40),
+        imageSize: new AMap.Size(30, 40)
+      }),
+      title: "基准点",
+      zIndex: 1000
+    });
+  } else {
+    map.setCenter([lon, lat]);
+  }
+
+  // 添加车辆标记
   cars.forEach(car => {
     const position = [car.longitude, car.latitude];
     const marker = new AMap.Marker({
@@ -123,57 +370,262 @@ function initMap(cars, lat, lon) {
       })
     });
 
+    markers.push(marker);
+
     const infoContent = `
       <div class="info-window">
-        车辆编号：<span onclick="copyNumber('${car.number}')">${car.number}</span><br>
-        电池：${car.battery_name || '-'}<br>
-        距离基准点：${car.distance} m
+        <div class="info-row">
+          <span class="info-label">车辆编号</span>
+          <span class="info-value copy-btn" 
+                data-lon="${car.longitude}" 
+                data-lat="${car.latitude}"
+                data-number="${car.number}"
+                onclick="handleNumberClick(event)"
+                ontouchstart="handleTouchStart(event)"
+                ontouchend="handleTouchEnd(event)"
+                ontouchmove="handleTouchMove(event)">${car.number}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">电池</span>
+          <span class="info-value">${car.battery_name || '未知'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">距离</span>
+          <span class="info-value">${car.distance} m</span>
+        </div>
       </div>
     `;
+    
     const infoWindow = new AMap.InfoWindow({
       content: infoContent,
-      offset: new AMap.Pixel(0, -25)
+      offset: new AMap.Pixel(0, -30),
+      isCustom: false
     });
 
     marker.on("click", () => {
       infoWindow.open(map, position);
     });
   });
+
+  // 自动适配视野
+  if (cars.length > 0) {
+    const bounds = new AMap.Bounds(
+      [Math.min(...cars.map(c => c.longitude)), Math.min(...cars.map(c => c.latitude))],
+      [Math.max(...cars.map(c => c.longitude)), Math.max(...cars.map(c => c.latitude))]
+    );
+    map.setBounds(bounds, false, [100, 100, 100, 100]);
+  }
+}
+
+function updateStats(cars) {
+  document.getElementById('totalCars').textContent = cars.length;
+  
+  const distances = cars.map(c => parseFloat(c.distance));
+  const avgDist = (distances.reduce((a, b) => a + b, 0) / distances.length).toFixed(0);
+  document.getElementById('avgDistance').textContent = avgDist + ' m';
+  
+  const nearest = cars.reduce((min, car) => 
+    parseFloat(car.distance) < parseFloat(min.distance) ? car : min
+  );
+  document.getElementById('nearestCar').textContent = nearest.number;
 }
 
 function copyNumber(number) {
-  navigator.clipboard.writeText(number).then(() => {
-    showToast(`已复制: ${number}`);
-  }).catch(() => {
-    const textarea = document.createElement('textarea');
-    textarea.value = number;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-    showToast(`已复制: ${number}`);
-  });
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(number).then(() => {
+      showToast(`已复制: ${number}`);
+    }).catch(() => {
+      fallbackCopy(number);
+    });
+  } else {
+    fallbackCopy(number);
+  }
 }
 
-function showToast(message) {
+// 长按导航相关变量
+let longPressTimer = null;
+let isLongPress = false;
+let touchMoved = false;
+
+function handleNumberClick(event) {
+  // 如果是长按触发的,不执行点击复制
+  if (isLongPress) {
+    isLongPress = false;
+    return;
+  }
+  
+  const target = event.target;
+  const number = target.dataset.number;
+  copyNumber(number);
+}
+
+function handleTouchStart(event) {
+  touchMoved = false;
+  isLongPress = false;
+  
+  const target = event.target;
+  const lon = target.dataset.lon;
+  const lat = target.dataset.lat;
+  const number = target.dataset.number;
+  
+  // 添加按压效果
+  target.classList.add('pressing');
+  
+  // 显示提示
+  const hint = document.createElement('div');
+  hint.className = 'nav-hint';
+  hint.textContent = '继续按住导航';
+  hint.id = 'nav-hint-' + Date.now();
+  target.style.position = 'relative';
+  target.appendChild(hint);
+  
+  // 设置长按定时器 (600ms)
+  longPressTimer = setTimeout(() => {
+    if (!touchMoved) {
+      isLongPress = true;
+      target.classList.remove('pressing');
+      
+      // 移除提示
+      const hintEl = target.querySelector('.nav-hint');
+      if (hintEl) {
+        target.removeChild(hintEl);
+      }
+      
+      // 跳转到高德导航
+      navigateToAmap(lon, lat, number);
+    }
+  }, 600);
+}
+
+function handleTouchEnd(event) {
+  const target = event.target;
+  
+  // 清除定时器
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+  
+  // 移除按压效果和提示
+  target.classList.remove('pressing');
+  const hint = target.querySelector('.nav-hint');
+  if (hint) {
+    target.removeChild(hint);
+  }
+  
+  // 如果不是长按且没有移动,执行点击复制
+  if (!isLongPress && !touchMoved) {
+    const number = target.dataset.number;
+    copyNumber(number);
+  }
+  
+  // 重置状态
+  setTimeout(() => {
+    isLongPress = false;
+    touchMoved = false;
+  }, 100);
+}
+
+function handleTouchMove(event) {
+  touchMoved = true;
+  
+  const target = event.target;
+  
+  // 移动时取消长按
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+  
+  // 移除效果
+  target.classList.remove('pressing');
+  const hint = target.querySelector('.nav-hint');
+  if (hint) {
+    target.removeChild(hint);
+  }
+}
+
+function navigateToAmap(lon, lat, name) {
+  // 高德地图导航 URL Scheme
+  // 格式: amapuri://route/plan/?dlat=目的地纬度&dlon=目的地经度&dname=目的地名称&dev=0&t=0
+  // dev=0 表示使用高德坐标系, t=0 表示驾车导航
+  
+  const amapUrl = `amapuri://route/plan/?dlat=${lat}&dlon=${lon}&dname=${encodeURIComponent('车辆 ' + name)}&dev=0&t=0`;
+  
+  showToast('正在打开高德地图...');
+  
+  // 尝试打开高德APP
+  window.location.href = amapUrl;
+  
+  // 如果2秒后还在页面,说明可能没装高德APP,提供网页版链接
+  setTimeout(() => {
+    const webUrl = `https://uri.amap.com/navigation?to=${lon},${lat},车辆${name}&mode=car&policy=1&src=myapp&coordinate=gaode&callnative=1`;
+    
+    // 创建确认提示
+    if (confirm('未检测到高德地图APP,是否使用网页版导航?')) {
+      window.open(webUrl, '_blank');
+    }
+  }, 2000);
+}
+
+function fallbackCopy(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    document.execCommand('copy');
+    showToast(`已复制: ${text}`);
+  } catch (err) {
+    showToast('复制失败', true);
+  }
+  document.body.removeChild(textarea);
+}
+
+function showToast(message, isError = false) {
   const toast = document.createElement('div');
-  toast.className = 'copy-toast';
+  toast.className = 'copy-toast' + (isError ? ' error-toast' : '');
   toast.textContent = message;
   document.body.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transition = 'opacity 0.3s ease';
-    setTimeout(() => document.body.removeChild(toast), 300);
-  }, 2000);
+    setTimeout(() => {
+      if (toast.parentNode) {
+        document.body.removeChild(toast);
+      }
+    }, 300);
+  }, 2500);
 }
 
-const params = new URLSearchParams(window.location.search);
-const lat = params.get("lat") || "32.102954";
-const lon = params.get("lon") || "118.911875";
+function hideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => {
+      if (overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+    }, 300);
+  }
+}
 
-loadCars(lat, lon);
+function refreshData() {
+  if (!currentLat || !currentLon) return;
+  
+  showToast('刷新中...');
+  loadCars(currentLat, currentLon);
+}
+
+// 初始化
+const params = new URLSearchParams(window.location.search);
+currentLat = params.get("lat") || "32.102954";
+currentLon = params.get("lon") || "118.911875";
+
+loadCars(currentLat, currentLon);
 </script>
 </body>
 </html>
